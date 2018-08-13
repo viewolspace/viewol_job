@@ -28,7 +28,7 @@
         <property name="concurrent" value="false"/>
         <property name="arguments">
             <map>
-                <entry key="templateId" value="123"></entry>
+                <entry key="templateId" value="Y3L_cZi-3EaMZBwCd70dwpr9N7_zI_LYTOfPsHlVsZM"></entry>
                 <entry key="url" value="http://www.baidu.com"></entry>
             </map>
         </property>
