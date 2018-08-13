@@ -26,6 +26,12 @@
             <value>timePush</value>
         </property>
         <property name="concurrent" value="false"/>
+        <property name="arguments">
+            <map>
+                <entry key="templateId" value="123"></entry>
+                <entry key="url" value="http://www.baidu.com"></entry>
+            </map>
+        </property>
     </bean>
     <bean id="timingPushTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
         <property name="jobDetail">
