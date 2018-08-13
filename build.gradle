@@ -1,0 +1,149 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.7
+
+repositories {
+    jcenter(){ url 'http://jcenter.bintray.com/'}
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    /** Spring **/
+    compile 'aopalliance:aopalliance:1.0'
+    compile 'org.aspectj:aspectjweaver:1.8.5'
+    compile 'org.springframework:spring-core:3.2.5.RELEASE'
+    compile 'org.springframework:spring-context:3.2.5.RELEASE'
+    compile 'org.springframework:spring-jdbc:3.2.5.RELEASE'
+    compile group: 'org.springframework', name: 'spring-context-support', version: '3.2.5.RELEASE'
+
+    compile group: 'opensymphony', name: 'quartz-all', version: '1.6.3'
+
+    /** Common **/
+    compile 'commons-pool:commons-pool:1.6'
+    compile 'commons-lang:commons-lang:2.6'
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.0'
+
+    /** Json **/
+    compile 'com.alibaba:fastjson:1.2.5'
+
+    /** Log **/
+    compile 'org.slf4j:slf4j-log4j12:1.7.10'
+
+    compile 'org.apache.curator:curator-recipes:2.8.0'
+
+    compile 'net.coobird:thumbnailator:0.4.8'
+
+
+
+    compile fileTree(dir: 'libs', include: '*.jar')
+
+
+
+    /** mybatis **/
+    compile 'org.mybatis:mybatis:3.2.3'
+    compile 'org.mybatis:mybatis-spring:1.2.1'
+
+    /** jaxrs rest **/
+    compile 'org.jboss.resteasy:jaxrs-api:3.0.5.Final'
+    compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.5.Final'
+
+
+
+    /** mysql **/
+    compile 'mysql:mysql-connector-java:5.1.19'
+
+    /** ucp - 3rd **/
+    testCompile 'junit:junit:4.12'
+
+    /** 微信小程序Java SDK**/
+    compile group: 'com.github.binarywang', name: 'weixin-java-miniapp', version: '3.1.0'
+    /** 微信公众号Java SDK**/
+    compile group: 'com.github.binarywang', name: 'weixin-java-mp', version: '3.1.0'
+
+    compile fileTree(dir: 'libs', include: '*.jar')
+}
+
+
+jar {
+    baseName = BASE_NAME
+    version = VERSION
+    excludes = ["properties", "spring"]
+    manifest {
+        attributes(
+                "Class-Path": '. ' + configurations.compile.collect { 'lib/' + it.getName() }.join(' '),
+                "Main-Class": MAIN_CLASS
+        )
+    }
+}
+
+task cleanBuild(type: Delete) {
+    delete 'dist'
+    delete 'release'
+}
+
+task copyJar(type: Copy) {
+    from 'build/libs'
+    into 'dist'
+}
+
+task copyDevResources(type: Copy) {
+    from 'src/main/resources'
+    into 'dist'
+}
+
+task copyTestResources(type: Copy) {
+    from 'build_config/test'
+    into 'dist'
+}
+
+task copyProdResources(type: Copy) {
+    from 'build_config/prod'
+    into 'dist'
+}
+
+task copyLibs(type: Copy) {
+    from 'libs'
+    from configurations.runtime
+    into 'dist/lib'
+}
+
+task tarDist(type: Zip) {
+    from 'dist'
+}
+
+task copyRelease(type: Copy) {
+    from 'build/distributions'
+    into 'release'
+}
+
+task releaseCommon << {
+    tasks.jar.execute()
+    tasks.cleanBuild.execute()
+    tasks.copyJar.execute()
+    tasks.copyDevResources.execute()
+    tasks.copyLibs.execute()
+}
+
+task releaseTest << {
+    tasks.releaseCommon.execute()
+    tasks.copyTestResources.execute()
+    tasks.tarDist.execute()
+    tasks.copyRelease.execute()
+}
+
+task releaseProd << {
+    tasks.releaseCommon.execute()
+    tasks.copyProdResources.execute()
+    tasks.tarDist.execute()
+    tasks.copyRelease.execute()
+}
+
+
