@@ -44,9 +44,11 @@ public class TimingPushTask {
                 //3.更新数据提醒字段为“已提醒”
                 if(msgId !=null && !"".equals(msgId) && !"-1".equals(msgId)){
                     scheduleService.updateReminderFlag(scheduleUser.getId());
+                    success ++;
+                } else {
+                    error ++;
                 }
 
-                success ++;
             } catch (Exception e) {
                 logger.error("提醒失败",e);
                 error ++;
