@@ -11,13 +11,13 @@
     <!-- 抓取公众号新闻 -->
     <bean id="wxCrawlerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="wxCrawlerJob"/>
-        <property name="targetMethod" value="crawl"/>
+        <property name="targetMethod" value="run"/>
         <property name="concurrent" value="false"/>
     </bean>
 
     <bean id="wxCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="wxCrawlerJobDetail"/>
-        <property name="cronExpression" value="0 0/1 * * * ?"/>
+        <property name="cronExpression" value="0 */1 * * * ?"/>
     </bean>
 
 
@@ -35,7 +35,7 @@
     </bean>
     <bean id="timingPushTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="timingPushJobDetail"/>
-        <property name="cronExpression" value="0 0/1 * * * ?"/>
+        <property name="cronExpression" value="0 */1 * * * ?"/>
     </bean>
 
 
