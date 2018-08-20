@@ -6,7 +6,9 @@ import com.viewol.service.IWxService;
 import com.viewol.util.ServiceFactory;
 import com.youguu.core.logging.Log;
 import com.youguu.core.logging.LogFactory;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +16,16 @@ import java.util.Map;
  * 定时推送：定时给报名参加活动的用户推送消息提醒。活动开始前10分钟推送
  * 任务每隔一分钟扫描一次
  */
+@Component("timingPushJob")
 public class TimingPushTask {
     private static final Log logger = LogFactory.getLog("viewol_job");
 
-    private IScheduleService scheduleService = ServiceFactory.getScheduleService();
-    private IWxService wxService = ServiceFactory.getWxService();
+//    private IScheduleService scheduleService = ServiceFactory.getScheduleService();
+//    private IWxService wxService = ServiceFactory.getWxService();
+    @Resource
+    private IScheduleService scheduleService;
+    @Resource
+    private IWxService wxService;
 
     public void timePush(Map<String, String> paramMap) {
         String templateId = paramMap.get("templateId");
