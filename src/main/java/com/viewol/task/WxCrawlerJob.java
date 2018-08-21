@@ -11,7 +11,7 @@ public class WxCrawlerJob {
             WxCrawler crawler = new WxCrawler("viewol_data", "D:/out", 5000L);
             crawler.addAccount("中国安防协会");
             crawler.setThreads(1);
-            crawler.setResumable(true);
+            crawler.setResumable(false);
             crawler.start(10);
         } catch (Exception e) {
             e.printStackTrace();

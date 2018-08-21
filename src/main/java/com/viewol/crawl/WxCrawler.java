@@ -40,7 +40,7 @@ import java.util.regex.Matcher;
 public class WxCrawler extends BreadthCrawler {
 
     private static final Log log = LogFactory.getLog("viewol_crawl");
-
+    private static final String URL="http://mp.weixin.qq.com";
     private Long sleepTime;
 
     private String outputPath;
@@ -68,9 +68,9 @@ public class WxCrawler extends BreadthCrawler {
         } else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_LIST)) {
             parseWxArticleList(page, next);
         }
-//        else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_DETAIL)) {
-//            parseWxArticleDetail(page);
-//        }
+        else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_DETAIL)) {
+            parseWxArticleDetail(page);
+        }
     }
 
     /**
@@ -160,7 +160,10 @@ public class WxCrawler extends BreadthCrawler {
                         info.setSummary(extInfo.getDigest());
                         info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
                         info.setPicUrl(extInfo.getCover());
-                        info.setContentUrl(extInfo.getContent_url());
+                        info.setContentUrl(extInfo.getContent_url().replaceAll("&amp;", "&"));
+                        if(!info.getContentUrl().startsWith(URL)){
+                            info.setContentUrl(URL+info.getContentUrl());
+                        }
                         info.setCreateTime(new Date());
                         infoService.save(info);
                     }
@@ -180,7 +183,10 @@ public class WxCrawler extends BreadthCrawler {
                                 info.setSummary(msgExtInfo.getDigest());
                                 info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
                                 info.setPicUrl(msgExtInfo.getCover());
-                                info.setContentUrl(msgExtInfo.getContent_url());
+                                info.setContentUrl(msgExtInfo.getContent_url().replaceAll("&amp;", "&"));
+                                if(!info.getContentUrl().startsWith(URL)){
+                                    info.setContentUrl(URL+info.getContentUrl());
+                                }
                                 info.setCreateTime(new Date());
                                 infoService.save(info);
                             }
