@@ -17,7 +17,7 @@
 
     <bean id="wxCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="wxCrawlerJobDetail"/>
-        <property name="cronExpression" value="0 */1 * * * ?"/>
+        <property name="cronExpression" value="0 */10 * * * ?"/>
     </bean>
 
 

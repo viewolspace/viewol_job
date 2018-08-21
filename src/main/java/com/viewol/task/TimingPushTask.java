@@ -9,6 +9,7 @@ import com.youguu.core.logging.LogFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,6 @@ import java.util.Map;
 public class TimingPushTask {
     private static final Log logger = LogFactory.getLog("viewol_job");
 
-//    private IScheduleService scheduleService = ServiceFactory.getScheduleService();
-//    private IWxService wxService = ServiceFactory.getWxService();
     @Resource
     private IScheduleService scheduleService;
     @Resource
@@ -44,13 +43,19 @@ public class TimingPushTask {
         int error = 0;
         for(ScheduleUser scheduleUser : needRemindList){
             try{
+                long diff = new Date().getTime() - scheduleUser.getReminderTime().getTime();
+                if(diff > 10*60*1000){
+                    logger.info("活动已开始，不再提醒");
+                    scheduleService.updateReminderFlag(scheduleUser.getId(), ScheduleUser.REMINDER_FAIL);
+                    continue;
+                }
                 //2.调用微信接口发送提醒消息
                 String msgId = wxService.sendTemplateMsg(scheduleUser.getScheduleId(), scheduleUser.getUserId(), scheduleUser.getUuid(), templateId, url);
                 logger.info("消息推送：活动ID={},用户ID={},模板ID={},msgId={}", scheduleUser.getScheduleId(), scheduleUser.getUserId(), templateId, msgId);
 
                 //3.更新数据提醒字段为“已提醒”
                 if(msgId !=null && !"".equals(msgId) && !"-1".equals(msgId)){
-                    scheduleService.updateReminderFlag(scheduleUser.getId());
+                    scheduleService.updateReminderFlag(scheduleUser.getId(), ScheduleUser.REMINDER_NO);
                     success ++;
                 } else {
                     error ++;
