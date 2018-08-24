@@ -319,7 +319,8 @@ public class WxCrawler extends BreadthCrawler {
                     }
                 }
             }
-
+            //解决“此图片来自微信公众平台未经允许不可引用”的方法
+            targetDoc.head().append("<meta name=\"referrer\" content=\"never\">");
             String content = targetDoc.outerHtml();
 
             log.info("accountName: {}, accountId: {}, cover: {}, title: {}, author: {}, publishDate: {}, digest: {}",
