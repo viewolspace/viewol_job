@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import javax.annotation.Resource;
@@ -320,7 +321,10 @@ public class WxCrawler extends BreadthCrawler {
                 }
             }
             //解决“此图片来自微信公众平台未经允许不可引用”的方法
-            targetDoc.head().append("<meta name=\"referrer\" content=\"never\">");
+            Element element = new Element("meta");
+            element.attr("name", "referrer");
+            element.attr("content", "never");
+            targetDoc.head().insertChildren(1, element);
             String content = targetDoc.outerHtml();
 
             log.info("accountName: {}, accountId: {}, cover: {}, title: {}, author: {}, publishDate: {}, digest: {}",
