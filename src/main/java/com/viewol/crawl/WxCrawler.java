@@ -19,6 +19,7 @@ import com.viewol.service.IInfoService;
 import com.viewol.util.ServiceFactory;
 import com.youguu.core.logging.Log;
 import com.youguu.core.logging.LogFactory;
+import com.youguu.core.util.MD5;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,8 +33,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 
@@ -42,18 +42,16 @@ public class WxCrawler extends BreadthCrawler {
     private static final Log log = LogFactory.getLog("viewol_crawl");
     private static final String URL="http://mp.weixin.qq.com";
     private Long sleepTime;
-
+    private List<Info> infoList;
     private String outputPath;
 
     private IInfoService infoService = ServiceFactory.getInfoService();
 
-//    @Resource
-//    private IInfoService infoService;
-
-    public WxCrawler(String wxCrawlPath, String outputPath, Long sleepTime) throws Exception {
+    public WxCrawler(String wxCrawlPath, String outputPath, Long sleepTime, List<Info> infoList) throws Exception {
         super(wxCrawlPath, false);
         this.outputPath = outputPath;
         this.sleepTime = sleepTime;
+        this.infoList = infoList;
     }
 
     @Override
@@ -67,8 +65,7 @@ public class WxCrawler extends BreadthCrawler {
             parseSogouSearchResult(page, next);
         } else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_LIST)) {
             parseWxArticleList(page, next);
-        }
-        else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_DETAIL)) {
+        } else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_DETAIL)) {
             parseWxArticleDetail(page);
         }
     }
@@ -145,54 +142,79 @@ public class WxCrawler extends BreadthCrawler {
         }
         if (CollectionUtils.isNotEmpty(articles)) {
             try {
+                List<Info> infoList = new ArrayList<>();
                 for (ArticleSummary articleSummary : articles) {
                     log.info("新闻标题:{}", JSON.toJSON(articleSummary));
 
-                    MsgExtInfo extInfo = articleSummary.getApp_msg_ext_info();
-                    CommMsgInfo commMsgInfo = articleSummary.getComm_msg_info();
+//                    MsgExtInfo extInfo = articleSummary.getApp_msg_ext_info();
+//                    CommMsgInfo commMsgInfo = articleSummary.getComm_msg_info();
+//
+//                    SimpleDateFormat dft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-                    SimpleDateFormat dft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                    //主新闻处理
+//                    if(extInfo.getDel_flag()!=null){
+//                        Info info = new Info();
+//                        info.setTitle(extInfo.getTitle());
+//                        info.setSummary(extInfo.getDigest());
+//                        info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
+//                        info.setPicUrl(extInfo.getCover());
+//                        info.setContentUrl(extInfo.getContent_url().replaceAll("&amp;", "&"));
+//                        if(!info.getContentUrl().startsWith(URL)){
+//                            info.setContentUrl(URL+info.getContentUrl());
+//                        }
+//                        info.setCreateTime(new Date());
+//                        infoList.add(info);
+//                    }
+//
+//                    //子新闻列表处理
+//                    if(!"".equals(extInfo.getMulti_app_msg_item_list())){
+//                        String jsonstr = extInfo.getMulti_app_msg_item_list();
+//
+//                        List<MsgExtInfo> list = JSONArray.parseArray(jsonstr, MsgExtInfo.class);
+//                        if(list !=null && list.size()>0){
+//                            for (MsgExtInfo msgExtInfo : list){
+//                                if(!"1".equals(msgExtInfo.getDel_flag())){
+//                                    continue;
+//                                }
+//                                Info info = new Info();
+//                                info.setTitle(msgExtInfo.getTitle());
+//                                info.setSummary(msgExtInfo.getDigest());
+//                                info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
+//                                info.setPicUrl(msgExtInfo.getCover());
+//                                info.setContentUrl(msgExtInfo.getContent_url().replaceAll("&amp;", "&"));
+//                                if(!info.getContentUrl().startsWith(URL)){
+//                                    info.setContentUrl(URL+info.getContentUrl());
+//                                }
+//                                info.setCreateTime(new Date());
+//                                infoList.add(info);
+//                            }
+//                        }
+//                    }
 
-                    //主新闻处理
-                    if(extInfo.getDel_flag()!=null){
-                        Info info = new Info();
-                        info.setTitle(extInfo.getTitle());
-                        info.setSummary(extInfo.getDigest());
-                        info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
-                        info.setPicUrl(extInfo.getCover());
-                        info.setContentUrl(extInfo.getContent_url().replaceAll("&amp;", "&"));
-                        if(!info.getContentUrl().startsWith(URL)){
-                            info.setContentUrl(URL+info.getContentUrl());
-                        }
-                        info.setCreateTime(new Date());
-                        infoService.save(info);
+                    CrawlDatum crawlDatum = parseArticleSummary(accountId, accountName, articleSummary.getApp_msg_ext_info(), articleSummary.getComm_msg_info());
+                    if (crawlDatum != null) {
+                        next.add(crawlDatum);
                     }
 
-                    //子新闻列表处理
-                    if(!"".equals(extInfo.getMulti_app_msg_item_list())){
-                        String jsonstr = extInfo.getMulti_app_msg_item_list();
-
-                        List<MsgExtInfo> list = JSONArray.parseArray(jsonstr, MsgExtInfo.class);
-                        if(list !=null && list.size()>0){
-                            for (MsgExtInfo msgExtInfo : list){
-                                if(!"1".equals(msgExtInfo.getDel_flag())){
-                                    continue;
-                                }
-                                Info info = new Info();
-                                info.setTitle(msgExtInfo.getTitle());
-                                info.setSummary(msgExtInfo.getDigest());
-                                info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
-                                info.setPicUrl(msgExtInfo.getCover());
-                                info.setContentUrl(msgExtInfo.getContent_url().replaceAll("&amp;", "&"));
-                                if(!info.getContentUrl().startsWith(URL)){
-                                    info.setContentUrl(URL+info.getContentUrl());
-                                }
-                                info.setCreateTime(new Date());
-                                infoService.save(info);
+                    // 处理多条图文信息
+                    if (WxCrawlerConstant.YES.equals(articleSummary.getApp_msg_ext_info().getIs_multi())
+                            && StringUtils.isNotEmpty(articleSummary.getApp_msg_ext_info().getMulti_app_msg_item_list())) {
+                        List<MsgExtInfo> subArticles = JSONArray.parseArray(articleSummary.getApp_msg_ext_info().getMulti_app_msg_item_list(), MsgExtInfo.class);
+                        for (MsgExtInfo subArticle : subArticles) {
+                            CrawlDatum subCrawlDatum = parseArticleSummary(accountId, accountName, subArticle, articleSummary.getComm_msg_info());
+                            if (subCrawlDatum != null) {
+                                next.add(subCrawlDatum);
                             }
                         }
                     }
                 }
+
+//                if(infoList.size()>0){
+//                    Collections.sort(infoList);//正序比较
+//                    for(Info info : infoList){
+//                        infoService.save(info);
+//                    }
+//                }
             } catch (Exception e) {
                 log.info("Failed to parseWxArticleList，exception={}", e);
             }
@@ -303,11 +325,21 @@ public class WxCrawler extends BreadthCrawler {
             log.info("accountName: {}, accountId: {}, cover: {}, title: {}, author: {}, publishDate: {}, digest: {}",
                     accountName, accountId, cover, title, author, publishDate, digest);
 
+            String contentUrl = new MD5().getMD5ofStr(title) + ".html";
             if (StringUtils.isNotEmpty(outputPath)) {
-                FileUtils.writeStringToFile(new File(getOutputAccountPath(accountName),
-                                com.viewol.crawl.common.utils.FileUtils.normalizeFileName(title + ".html"))
-                        , content, "UTF-8");
+                FileUtils.writeStringToFile(new File(getOutputAccountPath("SecurityChina"),
+                                com.viewol.crawl.common.utils.FileUtils.normalizeFileName(contentUrl)) , content, "UTF-8");
             }
+
+            Info info = new Info();
+            info.setTitle(title);
+            info.setSummary(digest);
+            SimpleDateFormat dft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            info.setPubTime(dft.parse(publishDate));
+            info.setPicUrl(cover);
+            info.setContentUrl(contentUrl);
+            info.setCreateTime(new Date());
+            infoList.add(info);
 
             setCrawlInfo(page.key());
 
