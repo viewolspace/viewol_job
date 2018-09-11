@@ -3,6 +3,7 @@ package com.viewol.crawl;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
+import cn.edu.hfut.dmic.webcollector.net.HttpRequest;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -14,11 +15,14 @@ import com.viewol.crawl.common.utils.SampleHTMLUtils;
 import com.viewol.crawl.pojo.ArticleSummary;
 import com.viewol.crawl.pojo.CommMsgInfo;
 import com.viewol.crawl.pojo.MsgExtInfo;
+import com.viewol.crawl.proxy.Proxy;
 import com.viewol.pojo.Info;
 import com.viewol.service.IInfoService;
 import com.viewol.util.ServiceFactory;
 import com.youguu.core.logging.Log;
 import com.youguu.core.logging.LogFactory;
+import com.youguu.core.pojo.Response;
+import com.youguu.core.util.HttpUtil;
 import com.youguu.core.util.MD5;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -30,6 +34,7 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +49,8 @@ public class WxCrawler extends BreadthCrawler {
     private Long sleepTime;
     private List<Info> infoList;
     private String outputPath;
+
+    private static java.net.Proxy proxy = null;
 
     private IInfoService infoService = ServiceFactory.getInfoService();
 
@@ -131,6 +138,7 @@ public class WxCrawler extends BreadthCrawler {
      * @param next
      */
     protected void parseWxArticleList(Page page, CrawlDatums next) {
+
         String accountName = page.meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_NAME);
         log.info("Parsing weixin article list page，accountName:{}", accountName);
         String accountId = page.meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_ID);
@@ -431,6 +439,93 @@ public class WxCrawler extends BreadthCrawler {
         String seedUrl = WxCrawlerConstant.SEARCH_URL + URLEncoder.encode(account, "utf-8");
         CrawlDatum seed = new CrawlDatum(seedUrl, WxCrawlerConstant.CrawlDatumType.ACCOUNT_SEARCH).meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_NAME, account);
         addSeed(seed);
+    }
+
+    @Override
+    public Page getResponse(CrawlDatum crawlDatum) throws Exception {
+
+        while (proxy==null){
+            proxy = this.getProxy();
+            Thread.sleep(1000);
+            log.info("获取代理proxy:{} ",proxy);
+        }
+        HttpRequest request = null;
+        Page page = null;
+        while (true){
+            try{
+                request = new HttpRequest(crawlDatum,proxy);
+                page = request.responsePage();
+                String html = page.html();
+                if(isRand(html)){
+                    log.info("需要输入验证码 ， 重新获取代理");
+                    proxy = this.getProxy();
+                    log.info("重新获取代理proxy:{}",proxy);
+                    Thread.sleep(1000);
+                    continue;
+                }
+                break;
+            }catch (Exception e){
+                e.printStackTrace();
+                log.info("代理proxy:{} 不可用 ",proxy);
+                proxy = this.getProxy();
+                log.info("重新获取代理proxy:{}",proxy);
+            }finally {
+
+            }
+        }
+
+        return request.responsePage();
+    }
+
+
+    private boolean isRand(String html){
+        if(html.indexOf("为了保护你的网络安全，请输入验证码") >0 && html.indexOf("验证码有误")>0){
+            return true;
+        }
+        return false;
+    }
+
+    private java.net.Proxy getProxy(){
+        List<Proxy> list = xiongmaodaili();
+        if(list!=null && list.size()>0){
+            java.net.Proxy proxy = new java.net.Proxy(java.net.Proxy.Type.HTTP, new InetSocketAddress(list.get(0).getIp(),Integer.parseInt(list.get(0).getPort())));
+            return proxy;
+        }
+        return null;
+    }
+
+
+    private List<Proxy> xiongmaodaili(){
+        List<Proxy> ipList = new ArrayList<>();
+        String url = "http://www.xiongmaodaili.com/xiongmao-web/api/glip?secret=678849a490966df97c3915ea15159d33&orderNo=GL20180911140922dNP3VKgg&count=1&isTxt=0&proxyType=1";
+
+        Response<String> response = HttpUtil.sendGet(url, null, "UTF-8");
+        if(response!=null && "0000".equals(response.getCode())){
+            String json = response.getT();
+            JSONObject jsonObject = JSONObject.parseObject(json);
+            if("0".equals(jsonObject.getString("code"))){
+                JSONArray ipArray = jsonObject.getJSONArray("obj");
+
+                for(int i = 0 ; i < ipArray.size() ; i++){
+                    JSONObject ipObj = (JSONObject)ipArray.get(i);
+                    Proxy proxy = new Proxy();
+                    proxy.setIp(ipObj.getString("ip"));
+                    proxy.setPort(ipObj.getString("port"));
+//                    boolean ret = testProxy(proxy);
+//                    if(ret){
+//                        ipList.add(proxy);
+//                    }
+                    log.info(proxy.toString());
+                    ipList.add(proxy);
+                }
+            } else {
+                log.info("获取代理IP失败: status:"+jsonObject.getString("status")+", msg:"+jsonObject.getString("msg"));
+            }
+        } else {
+            log.info("获取代理IP失败: msg: "+response.getMsg());
+        }
+
+        return ipList;
     }
 
 }

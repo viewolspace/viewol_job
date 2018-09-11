@@ -2,13 +2,11 @@ package com.viewol.task;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.viewol.crawl.IpCache;
 import com.viewol.crawl.WxCrawler;
 import com.viewol.crawl.proxy.MyRequester;
 import com.viewol.crawl.proxy.Proxy;
 import com.viewol.crawl.proxy.ProxyCrawler;
 import com.viewol.pojo.Info;
-import com.viewol.service.IInfoService;
 import com.youguu.core.logging.Log;
 import com.youguu.core.logging.LogFactory;
 import com.youguu.core.pojo.Response;
@@ -24,7 +22,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.*;
@@ -34,8 +31,8 @@ public class ProxyCrawlerJob {
 
     private static final Log log = LogFactory.getLog("viewol_crawl");
 
-    @Resource
-    private IInfoService infoService;
+//    @Resource
+//    private IInfoService infoService;
 
     public void run(){
 //        crawlIp();
@@ -67,7 +64,7 @@ public class ProxyCrawlerJob {
             if(infoList.size()>0){
                 Collections.sort(infoList);//正序比较
                 for(Info info : infoList){
-                    infoService.save(info);
+//                    infoService.save(info);
                 }
                 return true;
             }
@@ -77,6 +74,8 @@ public class ProxyCrawlerJob {
         }
         return false;
     }
+
+
 
     /**
      * 西刺代理IP抓取
@@ -242,6 +241,6 @@ public class ProxyCrawlerJob {
 
     public static void main(String[] args) {
         ProxyCrawlerJob job = new ProxyCrawlerJob();
-        job.xiongmaodaili();
+        job.run();
     }
 }
