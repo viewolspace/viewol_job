@@ -4,24 +4,27 @@ import cn.edu.hfut.dmic.webcollector.plugin.net.OkHttpRequester;
 import com.viewol.crawl.WxCrawler;
 import com.viewol.pojo.Info;
 import com.viewol.service.IInfoService;
+import com.youguu.core.util.PropertiesUtil;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 @Component("wxCrawlerJob")
 public class WxCrawlerJob {
 
-//    @Resource
+    @Resource
     private IInfoService infoService;
 
     public void run(){
         try {
             List<Info> infoList = new ArrayList<>();
-
-            WxCrawler crawler = new WxCrawler("viewol_data", "/data/out", 5000L, infoList);
-//            crawler.setRequester(new MyRequester("", 0, ""));
+            Properties properties = PropertiesUtil.getProperties("properties/config.properties");
+            String filePath = properties.getProperty("info.save.url");
+            WxCrawler crawler = new WxCrawler("viewol_data", filePath, 5000L, infoList);
             OkHttpRequester okHttpRequester = new OkHttpRequester();
             crawler.addAccount("中国安防协会");
             crawler.setThreads(1);

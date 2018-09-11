@@ -21,19 +21,6 @@
     </bean>
 
 
-    <!-- 抓取公众号新闻(代理) -->
-    <bean id="proxyCrawlerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-        <property name="targetObject" ref="proxyCrawlerJob"/>
-        <property name="targetMethod" value="run"/>
-        <property name="concurrent" value="false"/>
-    </bean>
-
-    <bean id="proxyCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
-        <property name="jobDetail" ref="proxyCrawlerJobDetail"/>
-        <property name="cronExpression" value="0 19 17 * * ?"/>
-    </bean>
-
-
     <!-- 定时给报名参加展会活动的用户推送消息 -->
     <bean id="timingPushJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="timingPushJob"/>
@@ -59,7 +46,6 @@
             <list>
                 <ref bean="timingPushTrigger"/>
                 <ref bean="wxCrawlerTrigger"/>
-                <ref bean="proxyCrawlerTrigger"/>
             </list>
         </property>
     </bean>

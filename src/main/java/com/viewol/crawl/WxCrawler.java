@@ -74,6 +74,8 @@ public class WxCrawler extends BreadthCrawler {
             parseWxArticleList(page, next);
         } else if (page.matchType(WxCrawlerConstant.CrawlDatumType.ARTICLE_DETAIL)) {
             parseWxArticleDetail(page);
+        } else {
+            log.info("未知CrawlDatumType");
         }
     }
 
@@ -220,32 +222,32 @@ public class WxCrawler extends BreadthCrawler {
      * @param page
      */
     protected void parseWxArticleDetail(Page page) {
-        String accountName = page.meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_NAME);
-        String accountId = page.meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_ID);
-        String cover = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_COVER);
-        String title = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_TITLE);
-        String digest = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_DIGEST);
-        String publishDate = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_PUBLISH_DATE);
-        String author = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_AUTHOR);
-
-        if (hasCrawled(page.key())) {
-            log.info("This article has crawled, skip, accountName：{}，article：{}", accountName, title);
-            return;
-        }
-
-        log.info("Parsing weixin article detail page，accountName：{}, article：{}", accountName, title);
         try {
+            String accountName = page.meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_NAME);
+            String accountId = page.meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_ID);
+            String cover = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_COVER);
+            String title = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_TITLE);
+            String digest = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_DIGEST);
+            String publishDate = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_PUBLISH_DATE);
+            String author = page.meta(WxCrawlerConstant.CrawlMetaKey.ARTICLE_AUTHOR);
+
+            if (hasCrawled(page.key())) {
+                log.info("This article has crawled, skip, accountName：{}，article：{}", accountName, title);
+                return;
+            }
+
+            log.info("Parsing weixin article detail page，accountName：{}, article：{}", accountName, title);
+
             Document sourceDoc = Jsoup.parse(page.html());
             Document targetDoc = SampleHTMLUtils.getSampleDocument();
             targetDoc.title(title);
-            try{
+
+            try {
                 targetDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first()
                         .appendChild(sourceDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first().clone());
+
             } catch (Exception ee){
-                log.error(ee);
-                if(page.html().equals("失效的验证页面")){
-                    log.error("失效的验证页面,你暂无权限查看此页面内容。");
-                }
+                log.error("targetDoc 异常");
             }
 
             // 处理图片节点
@@ -308,11 +310,13 @@ public class WxCrawler extends BreadthCrawler {
             info.setContentUrl(contentUrl);
             info.setCreateTime(new Date());
             infoList.add(info);
-
-            setCrawlInfo(page.key());
+            log.info("已抓取文章数量："+infoList.size());
+//            setCrawlInfo(page.key());
 
         } catch (Exception ex) {
             log.info("Failed to parseWxArticleDetail, exception={}", ex);
+        } finally {
+            setCrawlInfo(page.key());
         }
     }
 
