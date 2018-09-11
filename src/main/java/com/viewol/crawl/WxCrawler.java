@@ -3,6 +3,7 @@ package com.viewol.crawl;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
+import cn.edu.hfut.dmic.webcollector.net.HttpRequest;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -30,6 +31,7 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,14 +46,18 @@ public class WxCrawler extends BreadthCrawler {
     private Long sleepTime;
     private List<Info> infoList;
     private String outputPath;
+    private String ip;
+    private String port;
 
     private IInfoService infoService = ServiceFactory.getInfoService();
 
-    public WxCrawler(String wxCrawlPath, String outputPath, Long sleepTime, List<Info> infoList) throws Exception {
+    public WxCrawler(String wxCrawlPath, String outputPath, Long sleepTime, List<Info> infoList, String ip, String port) throws Exception {
         super(wxCrawlPath, false);
         this.outputPath = outputPath;
         this.sleepTime = sleepTime;
         this.infoList = infoList;
+        this.ip = ip;
+        this.port = port;
     }
 
     @Override
@@ -230,15 +236,9 @@ public class WxCrawler extends BreadthCrawler {
             Document sourceDoc = Jsoup.parse(page.html());
             Document targetDoc = SampleHTMLUtils.getSampleDocument();
             targetDoc.title(title);
-            try{
-                targetDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first()
-                        .appendChild(sourceDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first().clone());
-            } catch (Exception ee){
-                log.error(ee);
-                if(page.html().equals("失效的验证页面")){
-                    log.error("失效的验证页面,你暂无权限查看此页面内容。");
-                }
-            }
+
+            targetDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first()
+                    .appendChild(sourceDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first().clone());
 
             // 处理图片节点
             Elements imgElements = targetDoc.select("img");
@@ -432,5 +432,20 @@ public class WxCrawler extends BreadthCrawler {
         CrawlDatum seed = new CrawlDatum(seedUrl, WxCrawlerConstant.CrawlDatumType.ACCOUNT_SEARCH).meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_NAME, account);
         addSeed(seed);
     }
+
+    @Override
+    public Page getResponse(CrawlDatum crawlDatum) throws Exception {
+        HttpRequest request = null;
+        if(null!=this.ip && !"".equals(this.ip)){
+            java.net.Proxy proxy = new java.net.Proxy(java.net.Proxy.Type.HTTP, new InetSocketAddress(this.ip,Integer.parseInt(this.port)));
+            request = new HttpRequest(crawlDatum,proxy);
+        }else{
+            request = new HttpRequest(crawlDatum);
+        }
+
+
+        return request.responsePage();
+    }
+
 
 }
