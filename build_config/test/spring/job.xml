@@ -9,15 +9,28 @@
     <context:component-scan base-package="com.viewol*"/>
 
     <!-- 抓取公众号新闻 -->
-    <bean id="wxCrawlerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-        <property name="targetObject" ref="wxCrawlerJob"/>
+    <!--<bean id="wxCrawlerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
+        <!--<property name="targetObject" ref="wxCrawlerJob"/>-->
+        <!--<property name="targetMethod" value="run"/>-->
+        <!--<property name="concurrent" value="false"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="wxCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
+        <!--<property name="jobDetail" ref="wxCrawlerJobDetail"/>-->
+        <!--<property name="cronExpression" value="0 0 9 * * ?"/>-->
+    <!--</bean>-->
+
+
+    <!-- 抓取公众号新闻(代理) -->
+    <bean id="proxyCrawlerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="proxyCrawlerJob"/>
         <property name="targetMethod" value="run"/>
         <property name="concurrent" value="false"/>
     </bean>
 
-    <bean id="wxCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
-        <property name="jobDetail" ref="wxCrawlerJobDetail"/>
-        <property name="cronExpression" value="0 */1 * * * ?"/>
+    <bean id="proxyCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="proxyCrawlerJobDetail"/>
+        <property name="cronExpression" value="0 0 9 * * ?"/>
     </bean>
 
 
@@ -45,7 +58,8 @@
         <property name="triggers">
             <list>
                 <ref bean="timingPushTrigger"/>
-                <ref bean="wxCrawlerTrigger"/>
+                <!--<ref bean="wxCrawlerTrigger"/>-->
+                <ref bean="proxyCrawlerTrigger"/>
             </list>
         </property>
     </bean>

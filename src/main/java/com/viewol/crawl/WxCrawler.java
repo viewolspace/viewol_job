@@ -26,20 +26,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 
 
 public class WxCrawler extends BreadthCrawler {
-
     private static final Log log = LogFactory.getLog("viewol_crawl");
     private static final String URL="http://mp.weixin.qq.com";
     private Long sleepTime;
@@ -147,51 +146,6 @@ public class WxCrawler extends BreadthCrawler {
                 for (ArticleSummary articleSummary : articles) {
                     log.info("新闻标题:{}", JSON.toJSON(articleSummary));
 
-//                    MsgExtInfo extInfo = articleSummary.getApp_msg_ext_info();
-//                    CommMsgInfo commMsgInfo = articleSummary.getComm_msg_info();
-//
-//                    SimpleDateFormat dft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-//                    //主新闻处理
-//                    if(extInfo.getDel_flag()!=null){
-//                        Info info = new Info();
-//                        info.setTitle(extInfo.getTitle());
-//                        info.setSummary(extInfo.getDigest());
-//                        info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
-//                        info.setPicUrl(extInfo.getCover());
-//                        info.setContentUrl(extInfo.getContent_url().replaceAll("&amp;", "&"));
-//                        if(!info.getContentUrl().startsWith(URL)){
-//                            info.setContentUrl(URL+info.getContentUrl());
-//                        }
-//                        info.setCreateTime(new Date());
-//                        infoList.add(info);
-//                    }
-//
-//                    //子新闻列表处理
-//                    if(!"".equals(extInfo.getMulti_app_msg_item_list())){
-//                        String jsonstr = extInfo.getMulti_app_msg_item_list();
-//
-//                        List<MsgExtInfo> list = JSONArray.parseArray(jsonstr, MsgExtInfo.class);
-//                        if(list !=null && list.size()>0){
-//                            for (MsgExtInfo msgExtInfo : list){
-//                                if(!"1".equals(msgExtInfo.getDel_flag())){
-//                                    continue;
-//                                }
-//                                Info info = new Info();
-//                                info.setTitle(msgExtInfo.getTitle());
-//                                info.setSummary(msgExtInfo.getDigest());
-//                                info.setPubTime(new Date(Long.parseLong(commMsgInfo.getDatetime())*1000));
-//                                info.setPicUrl(msgExtInfo.getCover());
-//                                info.setContentUrl(msgExtInfo.getContent_url().replaceAll("&amp;", "&"));
-//                                if(!info.getContentUrl().startsWith(URL)){
-//                                    info.setContentUrl(URL+info.getContentUrl());
-//                                }
-//                                info.setCreateTime(new Date());
-//                                infoList.add(info);
-//                            }
-//                        }
-//                    }
-
                     CrawlDatum crawlDatum = parseArticleSummary(accountId, accountName, articleSummary.getApp_msg_ext_info(), articleSummary.getComm_msg_info());
                     if (crawlDatum != null) {
                         next.add(crawlDatum);
@@ -210,12 +164,6 @@ public class WxCrawler extends BreadthCrawler {
                     }
                 }
 
-//                if(infoList.size()>0){
-//                    Collections.sort(infoList);//正序比较
-//                    for(Info info : infoList){
-//                        infoService.save(info);
-//                    }
-//                }
             } catch (Exception e) {
                 log.info("Failed to parseWxArticleList，exception={}", e);
             }
@@ -282,8 +230,15 @@ public class WxCrawler extends BreadthCrawler {
             Document sourceDoc = Jsoup.parse(page.html());
             Document targetDoc = SampleHTMLUtils.getSampleDocument();
             targetDoc.title(title);
-            targetDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first()
-                    .appendChild(sourceDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first().clone());
+            try{
+                targetDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first()
+                        .appendChild(sourceDoc.select(WxCrawlerConstant.HTMLElementSelector.RICH_MEDIA_CONTENT).first().clone());
+            } catch (Exception ee){
+                log.error(ee);
+                if(page.html().equals("失效的验证页面")){
+                    log.error("失效的验证页面,你暂无权限查看此页面内容。");
+                }
+            }
 
             // 处理图片节点
             Elements imgElements = targetDoc.select("img");
@@ -477,13 +432,5 @@ public class WxCrawler extends BreadthCrawler {
         CrawlDatum seed = new CrawlDatum(seedUrl, WxCrawlerConstant.CrawlDatumType.ACCOUNT_SEARCH).meta(WxCrawlerConstant.CrawlMetaKey.ACCOUNT_NAME, account);
         addSeed(seed);
     }
-
-//    public static void main(String[] args) throws Exception {
-//        WxCrawler crawler = new WxCrawler("crawl_weixin", "D:/out", 5000L);
-//        crawler.addAccount("中国安防协会");
-//        crawler.setThreads(1);
-//        crawler.setResumable(false);
-//        crawler.start(10);
-//    }
 
 }

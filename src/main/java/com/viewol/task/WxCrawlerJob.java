@@ -3,7 +3,6 @@ package com.viewol.task;
 import com.viewol.crawl.WxCrawler;
 import com.viewol.pojo.Info;
 import com.viewol.service.IInfoService;
-import com.viewol.util.ServiceFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -15,13 +14,15 @@ import java.util.List;
 public class WxCrawlerJob {
 
     @Resource
-    private IInfoService infoService;// = ServiceFactory.getInfoService();
+    private IInfoService infoService;
 
     public void run(){
         try {
             List<Info> infoList = new ArrayList<>();
 
             WxCrawler crawler = new WxCrawler("viewol_data", "/data/out", 5000L, infoList);
+//            crawler.setRequester(new MyRequester("", 0, ""));
+
             crawler.addAccount("中国安防协会");
             crawler.setThreads(1);
             crawler.setResumable(false);

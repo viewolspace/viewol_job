@@ -74,6 +74,12 @@ dependencies {
     compile group: 'org.htmlparser', name: 'htmlparser', version: '2.1'
     compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
 
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.11.v20180605'
+    compile group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '9.4.11.v20180605'
+    compile group: 'org.eclipse.jetty', name: 'jetty-continuation', version: '9.4.11.v20180605'
+    compile group: 'org.eclipse.jetty', name: 'jetty-jsp', version: '9.2.26.v20180806'
+
+
     compile fileTree(dir: 'libs', include: '*.jar')
 }
 
