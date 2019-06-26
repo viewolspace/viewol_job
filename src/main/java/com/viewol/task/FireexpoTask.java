@@ -9,6 +9,7 @@ import com.youguu.core.util.HttpUtil;
 
 public class FireexpoTask {
 
+    public static final String LOGO_URL_PREFIX = "http://61.161.226.197:8090/upload/";
     //展商列表
     public static final String COMPANY_LIST_URL = "http://61.161.226.197:8090//portalservice/zwjbxx/doFindQyZwNumDesc?callback=callback&zgList=&pageNum=1&pageSize=1000&gsmc=";
     //展商首页（包含展商和展品列表信息）
@@ -32,6 +33,12 @@ public class FireexpoTask {
             Response<String> companyRes = HttpUtil.sendGet(COMPANY_INDEX + qyid, null, "UTF-8");
             String json = companyRes.getT().substring(9, companyRes.getT().length() - 1);
             CompanyResponse companyResponse = JSONObject.parseObject(json, CompanyResponse.class);
+
+            String gsmc = companyResponse.getResult().getZwgsmc();//公司名称
+            String wz = companyResponse.getResult().getWz();//公司官网URL
+            String qyjsSrc = companyResponse.getResult().getQyjsSrc();//公司LOGO
+            String qyjj = companyResponse.getResult().getQyjj();//公司介绍
+
             //4、遍历展品列表
             for (CompanyResponse.ResultBean.QycpjsVOsBean vOsBean : companyResponse.getResult().getQycpjsVOs()) {
 
@@ -42,12 +49,13 @@ public class FireexpoTask {
                 ProductResponse productResponse = JSONObject.parseObject(proJson, ProductResponse.class);
 
                 String cpjj = productResponse.getResult().getCpjj();//展品简介
-                String cplxmc = productResponse.getResult().getCplxmc();//分类
+                String cplxmc = productResponse.getResult().getCplxmc();//展品分类
                 String src = productResponse.getResult().getSrc();//展品logo
+                String zwgsmc = productResponse.getResult().getZwgsmc();//公司名称
 
-                System.out.println(proJson);
+//                System.out.println(proJson);
             }
-            System.out.println("--------------------");
+//            System.out.println("--------------------");
         }
 
     }
