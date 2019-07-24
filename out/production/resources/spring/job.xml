@@ -39,13 +39,23 @@
     </bean>
 
 
-
+    <!-- 抓取消防展资讯 -->
+    <bean id="fireexpoJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="fireexpoTask"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+    </bean>
+    <bean id="fireexpoTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="fireexpoJobDetail"/>
+        <property name="cronExpression" value="0 48 22 24 * ?"/>
+    </bean>
 
     <bean id="startQuartz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
-                <ref bean="timingPushTrigger"/>
+<!--                <ref bean="timingPushTrigger"/>-->
                 <ref bean="wxCrawlerTrigger"/>
+                <ref bean="fireexpoTrigger"/>
             </list>
         </property>
     </bean>

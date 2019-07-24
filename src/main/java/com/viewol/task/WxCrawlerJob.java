@@ -19,7 +19,7 @@ public class WxCrawlerJob {
     @Resource
     private IInfoService infoService;
 
-    public void run(){
+    public void run() {
         try {
             List<Info> infoList = new ArrayList<>();
             Properties properties = PropertiesUtil.getProperties("properties/config.properties");
@@ -32,10 +32,10 @@ public class WxCrawlerJob {
             crawler.start(10);
             crawler.setRequester(okHttpRequester);
 
-            if(infoList.size()>0){
+            if (infoList.size() > 0) {
                 Collections.sort(infoList);//正序比较
-                for(Info info : infoList){
-                    infoService.save(info);
+                for (Info info : infoList) {
+                    infoService.save(1, info);//1-安防展
                 }
             }
         } catch (Exception e) {
