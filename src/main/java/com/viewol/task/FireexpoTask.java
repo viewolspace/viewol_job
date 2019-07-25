@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Component("fireexpoTask")
@@ -49,6 +50,7 @@ public class FireexpoTask {
 
             //3、抓展商主页+展品列表
             String qyid = bean.getQyid();//展商ID
+            String zwh = bean.getZwh();
             Response<String> companyRes = HttpUtil.sendGet(COMPANY_INDEX + qyid, null, "UTF-8");
             String json = companyRes.getT().substring(9, companyRes.getT().length() - 1);
             CompanyResponse companyResponse = JSONObject.parseObject(json, CompanyResponse.class);
@@ -61,13 +63,17 @@ public class FireexpoTask {
             Company company = new Company();
             company.setName(gsmc);
             company.setShortName(gsmc);
-            company.setLogo(qyjsSrc);
+            company.setLogo("/"+qyjsSrc);
             company.setContent(qyjj);
             company.setProductNum(100);
             company.setCanApply(1);
+            company.setPlace(zwh);
+            company.setPlaceSvg(zwh);
             company.setcTime(new Date());
 
-            int companyId = companyService.addCompany(2, company, new ArrayList<String>());
+            List<String> cList = new ArrayList<>();
+            cList.add("00010009");
+            int companyId = companyService.addCompany(2, company, cList);
             //4、遍历展品列表
             for (CompanyResponse.ResultBean.QycpjsVOsBean vOsBean : companyResponse.getResult().getQycpjsVOs()) {
 
@@ -85,10 +91,11 @@ public class FireexpoTask {
                 productSet.add(cplxmc);
 
                 Product product = new Product();
+                product.setName(cplxmc);
                 product.setCompanyId(companyId);
                 product.setContent(cpjj);
-                product.setImage(src);
-                product.setCategoryId("9999");
+                product.setImage("/"+src);
+                product.setCategoryId("00020009");
                 product.setStatus(0);//0上架
                 product.setcTime(new Date());
 

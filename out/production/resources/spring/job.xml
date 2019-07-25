@@ -53,7 +53,7 @@
     <bean id="startQuartz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
-<!--                <ref bean="timingPushTrigger"/>-->
+                <ref bean="timingPushTrigger"/>
                 <ref bean="wxCrawlerTrigger"/>
                 <ref bean="fireexpoTrigger"/>
             </list>
