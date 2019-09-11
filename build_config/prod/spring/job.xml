@@ -67,7 +67,7 @@
                 <ref bean="timingPushTrigger"/>
                 <ref bean="wxCrawlerTrigger"/>
                 <ref bean="wxCrawlerFireTrigger"/>
-                <ref bean="fireexpoTrigger"/>
+<!--                <ref bean="fireexpoTrigger"/>-->
             </list>
         </property>
     </bean>

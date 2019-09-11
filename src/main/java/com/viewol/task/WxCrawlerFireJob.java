@@ -25,7 +25,7 @@ public class WxCrawlerFireJob {
             List<Info> infoList = new ArrayList<>();
             Properties properties = PropertiesUtil.getProperties("properties/config.properties");
             String filePath = properties.getProperty("info.save.url");
-            WxFireCrawler crawler = new WxFireCrawler("viewol_data", filePath, 5000L, infoList);
+            WxFireCrawler crawler = new WxFireCrawler("viewol_fire_data", filePath, 5000L, infoList);
             OkHttpRequester okHttpRequester = new OkHttpRequester();
             crawler.addAccount("中国国际消防展");
             crawler.setThreads(1);

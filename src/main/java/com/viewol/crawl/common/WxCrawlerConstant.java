@@ -16,6 +16,7 @@ public interface WxCrawlerConstant {
     String ARTICLE_URL_PREFIX = "http://mp.weixin.qq.com";
 
     String SEARCH_URL = "http://weixin.sogou.com/weixin?type=1&s_from=input&ie=utf8&query=";
+//    String SEARCH_URL = "https://weixin.sogou.com/weixin?type=1&s_from=input&ie=utf8&query=";
 
     String VOICE_URL = "https://res.wx.qq.com/voice/getvoice?mediaid=";
 
