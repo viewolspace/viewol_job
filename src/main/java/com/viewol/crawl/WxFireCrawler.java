@@ -17,8 +17,6 @@ import com.viewol.crawl.pojo.CommMsgInfo;
 import com.viewol.crawl.pojo.MsgExtInfo;
 import com.viewol.crawl.proxy.Proxy;
 import com.viewol.pojo.Info;
-import com.viewol.service.IInfoService;
-import com.viewol.util.ServiceFactory;
 import com.youguu.core.logging.Log;
 import com.youguu.core.logging.LogFactory;
 import com.youguu.core.pojo.Response;
@@ -43,7 +41,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 
-public class WxCrawler extends BreadthCrawler {
+public class WxFireCrawler extends BreadthCrawler {
     private static final Log log = LogFactory.getLog("viewol_crawl");
     private static final String URL = "http://mp.weixin.qq.com";
     private Long sleepTime;
@@ -52,9 +50,7 @@ public class WxCrawler extends BreadthCrawler {
 
     private static java.net.Proxy proxy = null;
 
-    private IInfoService infoService = ServiceFactory.getInfoService();
-
-    public WxCrawler(String wxCrawlPath, String outputPath, Long sleepTime, List<Info> infoList) throws Exception {
+    public WxFireCrawler(String wxCrawlPath, String outputPath, Long sleepTime, List<Info> infoList) throws Exception {
         super(wxCrawlPath, false);
         this.outputPath = outputPath;
         this.sleepTime = sleepTime;
@@ -309,7 +305,7 @@ public class WxCrawler extends BreadthCrawler {
             info.setPicUrl(cover);
             info.setContentUrl(contentUrl);
             info.setCreateTime(new Date());
-            info.setClassify(1);//安防展
+            info.setClassify(2);//消防展
             infoList.add(info);
             log.info("已抓取文章数量：" + infoList.size());
 //            setCrawlInfo(page.key());
@@ -448,33 +444,32 @@ public class WxCrawler extends BreadthCrawler {
 
     @Override
     public Page getResponse(CrawlDatum crawlDatum) throws Exception {
-
-        while (proxy == null) {
+        while (proxy==null){
             proxy = this.getProxy();
             Thread.sleep(1000);
-            log.info("获取代理proxy:{} ", proxy);
+            log.info("获取代理proxy:{} ",proxy);
         }
         HttpRequest request = null;
         Page page = null;
-        while (true) {
-            try {
-                request = new HttpRequest(crawlDatum, proxy);
+        while (true){
+            try{
+                request = new HttpRequest(crawlDatum,proxy);
                 page = request.responsePage();
                 String html = page.html();
-                if (isRand(html)) {
+                if(isRand(html)){
                     log.info("需要输入验证码 ， 重新获取代理");
                     proxy = this.getProxy();
-                    log.info("重新获取代理proxy:{}", proxy);
+                    log.info("重新获取代理proxy:{}",proxy);
                     Thread.sleep(1000);
                     continue;
                 }
                 break;
-            } catch (Exception e) {
+            }catch (Exception e){
                 e.printStackTrace();
-                log.info("代理proxy:{} 不可用 ", proxy);
+                log.info("代理proxy:{} 不可用 ",proxy);
                 proxy = this.getProxy();
-                log.info("重新获取代理proxy:{}", proxy);
-            } finally {
+                log.info("重新获取代理proxy:{}",proxy);
+            }finally {
 
             }
         }
@@ -510,7 +505,6 @@ public class WxCrawler extends BreadthCrawler {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         Response<String> response = HttpUtil.sendGet(url, null, "UTF-8");
         if (response != null && "0000".equals(response.getCode())) {
             String json = response.getT();

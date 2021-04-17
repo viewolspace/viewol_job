@@ -8,7 +8,7 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.viewol*"/>
 
-    <!-- 抓取公众号新闻 -->
+    <!-- 抓取中国安防协会公众号新闻 -->
     <bean id="wxCrawlerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="wxCrawlerJob"/>
         <property name="targetMethod" value="run"/>
@@ -17,9 +17,20 @@
 
     <bean id="wxCrawlerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="wxCrawlerJobDetail"/>
-        <property name="cronExpression" value="0 40 17 * * ?"/>
+        <property name="cronExpression" value="0 30 9 * * ?"/>
     </bean>
 
+    <!-- 抓取中国消防协会公众号新闻 -->
+    <bean id="wxCrawlerFireJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="wxCrawlerFireJob"/>
+        <property name="targetMethod" value="run"/>
+        <property name="concurrent" value="false"/>
+    </bean>
+
+    <bean id="wxCrawlerFireTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="wxCrawlerFireJobDetail"/>
+        <property name="cronExpression" value="0 30 9 * * ?"/>
+    </bean>
 
     <!-- 定时给报名参加展会活动的用户推送消息 -->
     <bean id="timingPushJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
@@ -39,13 +50,24 @@
     </bean>
 
 
-
+    <!-- 抓取消防展资讯 -->
+    <bean id="fireexpoJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="fireexpoTask"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+    </bean>
+    <bean id="fireexpoTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="fireexpoJobDetail"/>
+        <property name="cronExpression" value="0 48 22 24 * ?"/>
+    </bean>
 
     <bean id="startQuartz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
                 <ref bean="timingPushTrigger"/>
                 <ref bean="wxCrawlerTrigger"/>
+                <ref bean="wxCrawlerFireTrigger"/>
+                <ref bean="fireexpoTrigger"/>
             </list>
         </property>
     </bean>

@@ -4,7 +4,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 repositories {
-    jcenter(){ url 'http://jcenter.bintray.com/'}
+    maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
 }
 
 compileJava {
@@ -79,6 +79,8 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-continuation', version: '9.4.11.v20180605'
     compile group: 'org.eclipse.jetty', name: 'jetty-jsp', version: '9.2.26.v20180806'
 
+    compile group: 'us.codecraft', name: 'webmagic-core', version: '0.7.3'
+    compile group: 'us.codecraft', name: 'webmagic-extension', version: '0.7.3'
 
     compile fileTree(dir: 'libs', include: '*.jar')
 }

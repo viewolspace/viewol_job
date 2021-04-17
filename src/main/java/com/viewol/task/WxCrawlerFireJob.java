@@ -2,6 +2,7 @@ package com.viewol.task;
 
 import cn.edu.hfut.dmic.webcollector.plugin.net.OkHttpRequester;
 import com.viewol.crawl.WxCrawler;
+import com.viewol.crawl.WxFireCrawler;
 import com.viewol.pojo.Info;
 import com.viewol.service.IInfoService;
 import com.youguu.core.util.PropertiesUtil;
@@ -13,8 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-@Component("wxCrawlerJob")
-public class WxCrawlerJob {
+@Component("wxCrawlerFireJob")
+public class WxCrawlerFireJob {
 
     @Resource
     private IInfoService infoService;
@@ -24,9 +25,9 @@ public class WxCrawlerJob {
             List<Info> infoList = new ArrayList<>();
             Properties properties = PropertiesUtil.getProperties("properties/config.properties");
             String filePath = properties.getProperty("info.save.url");
-            WxCrawler crawler = new WxCrawler("viewol_data", filePath, 5000L, infoList);
+            WxFireCrawler crawler = new WxFireCrawler("viewol_fire_data", filePath, 5000L, infoList);
             OkHttpRequester okHttpRequester = new OkHttpRequester();
-            crawler.addAccount("中国安防协会");
+            crawler.addAccount("中国国际消防展");
             crawler.setThreads(1);
             crawler.setResumable(false);
             crawler.start(10);
@@ -44,7 +45,7 @@ public class WxCrawlerJob {
     }
 
     public static void main(String[] args) {
-        WxCrawlerJob job = new WxCrawlerJob();
+        WxCrawlerFireJob job = new WxCrawlerFireJob();
         job.run();
     }
 }
