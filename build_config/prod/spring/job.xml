@@ -61,13 +61,26 @@
         <property name="cronExpression" value="0 48 22 24 * ?"/>
     </bean>
 
-    <bean id="startQuartz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <!-- 获取展商，展品信息 -->
+    <bean id="cfpaCompanyJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="cfpaCompanyTask"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+    </bean>
+    <bean id="cfpaCompanyTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="cfpaCompanyJobDetail"/>
+        <property name="cronExpression" value="0 * 01 * * ?"/>
+    </bean>
+
+    <bean id="startQuartz" lazy-init="false" autowire="no"
+          class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
                 <ref bean="timingPushTrigger"/>
                 <ref bean="wxCrawlerTrigger"/>
                 <ref bean="wxCrawlerFireTrigger"/>
-<!--                <ref bean="fireexpoTrigger"/>-->
+                <!--<ref bean="fireexpoTrigger"/>-->
+                <ref bean="cfpaCompanyTrigger"/>
             </list>
         </property>
     </bean>
