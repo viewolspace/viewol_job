@@ -7,6 +7,11 @@ import com.viewol.pojo.Product;
 import com.viewol.service.CfpaService;
 import com.viewol.service.ICompanyService;
 import com.viewol.service.IProductService;
+import com.viewol.sys.pojo.SysUser;
+import com.viewol.sys.pojo.SysUserRole;
+import com.viewol.sys.service.SysUserRoleService;
+import com.viewol.sys.service.SysUserService;
+import com.youguu.core.util.MD5;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -26,6 +31,10 @@ public class CfpaCompanyTask {
     private IProductService productService;
     @Resource
     private CfpaService cfpaService;
+    @Resource
+    private SysUserService sysUserService;
+    @Resource
+    private SysUserRoleService sysUserRoleService;
 
     public void execute() {
         List<CfpaCompany> list = cfpaService.queryAllCfpaCompany();
@@ -44,6 +53,29 @@ public class CfpaCompanyTask {
             List<String> cList = new ArrayList<>();
             cList.add("00010009");
             int companyId = companyService.addCompany(2, company, cList);
+
+            /**
+             * 注册用户
+             */
+            SysUser sysUser = new SysUser();
+            sysUser.setPswd(new MD5().getMD5ofStr("123456").toLowerCase());
+            sysUser.setUserName(company.getName());
+            sysUser.setRealName(company.getName());
+            sysUser.setCompanyId(companyId);
+            sysUser.setUserStatus(1);
+            sysUser.setCreateTime(new Date());
+            sysUser.setEmail("");
+            sysUser.setPhone("");
+            sysUserService.saveSysUser(sysUser);
+
+            /**
+             * 给用户分配权限
+             */
+            SysUserRole sysUserRole = new SysUserRole();
+            sysUserRole.setRid(8);
+            sysUserRole.setUid(sysUser.getId());
+            sysUserRole.setCreateTime(new Date());
+            sysUserRoleService.saveSysUserRole(sysUserRole);
 
             //统一信用代码（唯一标识）
             String tyshxydm = cfpaCompany.getTyshxydm();

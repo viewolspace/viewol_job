@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SysUser">
+    <resultMap type="SysUser" id="SysUserResultMap">
+        <result property="id" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="realName" column="real_name"/>
+        <result property="email" column="email"/>
+        <result property="pswd" column="pswd"/>
+        <result property="phone" column="phone"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="userStatus" column="user_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="companyId" column="company_id"/>
+        <result property="roleId" column="roleId"/>
+        <result property="roleName" column="roleName"/>
+        <result property="roleCode" column="roleCode"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="SysUser">
+        insert into sys_user
+        (user_name,real_name,email,pswd,phone,create_time,last_login_time,user_status,company_id)
+        VALUES
+        (#{userName},#{realName},#{email},#{pswd},#{phone},#{createTime},#{lastLoginTime},#{userStatus},#{companyId})
+        <selectKey resultType="int" keyProperty="id">
+            select LAST_INSERT_ID() AS id
+        </selectKey>
+    </insert>
+
+    <delete id="delete" parameterType="int">
+        delete
+        from sys_user
+        where id = #{id}
+    </delete>
+
+    <update id="update" parameterType="SysUser">
+        update sys_user
+        set user_name=#{userName},
+            real_name=#{realName},
+            email=#{email},
+            phone=#{phone},
+            create_time=#{createTime},
+            last_login_time=#{lastLoginTime},
+            user_status=#{userStatus},
+            company_id=#{companyId}
+        where id = #{id}
+    </update>
+
+    <!-- 根据用户名查询-->
+    <select id="findSysUserByUserName" parameterType="String" resultMap="SysUserResultMap">
+        select a.id,
+               a.user_name,
+               a.real_name,
+               a.email,
+               a.pswd,
+               a.phone,
+               a.create_time,
+               a.last_login_time,
+               a.user_status,
+               a.company_id,
+               c.id   as roleId,
+               c.name as roleName,
+               c.code as roleCode
+        from sys_user a,
+             sys_user_role b,
+             sys_role c
+        where a.id = b.uid
+          and b.rid = c.id
+          and a.user_name = #{userName}
+    </select>
+
+</mapper>
