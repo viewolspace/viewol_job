@@ -39,43 +39,63 @@ public class CfpaCompanyTask {
     public void execute() {
         List<CfpaCompany> list = cfpaService.queryAllCfpaCompany();
         for (CfpaCompany cfpaCompany : list) {
-            Company company = new Company();
-            company.setName(cfpaCompany.getZwgsmc());
-            company.setShortName(cfpaCompany.getZwgsmc());
-            company.setLogo("/" + cfpaCompany.getSrc());
-            company.setContent(cfpaCompany.getQyjj());
-            company.setProductNum(100);
-            company.setCanApply(1);
-            company.setPlace(cfpaCompany.getZwh());
-            company.setPlaceSvg(cfpaCompany.getZwh());
-            company.setcTime(new Date());
+            //查询本地表里是否有该展商数据，有则更新，无则插入。
+            Company company = companyService.getCompanyByUserNum(cfpaCompany.getTyshxydm());
+            int companyId = 0;
+            if(company == null){
+                company = new Company();
+                company.setName(cfpaCompany.getZwgsmc());
+                company.setShortName(cfpaCompany.getZwgsmc());
+                company.setLogo("/" + cfpaCompany.getSrc());
+                company.setContent(cfpaCompany.getQyjj());
+                company.setProductNum(100);
+                company.setCanApply(1);
+                company.setPlace(cfpaCompany.getZwh());
+                company.setPlaceSvg(cfpaCompany.getZwh());
+                company.setcTime(new Date());
 
-            List<String> cList = new ArrayList<>();
-            cList.add("00010009");
-            int companyId = companyService.addCompany(2, company, cList);
+                List<String> cList = new ArrayList<>();
+                cList.add("00010009");
+                companyId = companyService.addCompany(2, company, cList);
 
-            /**
-             * 注册用户
-             */
-            SysUser sysUser = new SysUser();
-            sysUser.setPswd(new MD5().getMD5ofStr("123456").toLowerCase());
-            sysUser.setUserName(company.getName());
-            sysUser.setRealName(company.getName());
-            sysUser.setCompanyId(companyId);
-            sysUser.setUserStatus(1);
-            sysUser.setCreateTime(new Date());
-            sysUser.setEmail("");
-            sysUser.setPhone("");
-            sysUserService.saveSysUser(sysUser);
+                /**
+                 * 注册用户
+                 */
+                SysUser sysUser = new SysUser();
+                sysUser.setPswd(new MD5().getMD5ofStr("123456").toLowerCase());
+                sysUser.setUserName(company.getName());
+                sysUser.setRealName(company.getName());
+                sysUser.setCompanyId(companyId);
+                sysUser.setUserStatus(1);
+                sysUser.setCreateTime(new Date());
+                sysUser.setEmail("");
+                sysUser.setPhone("");
+                sysUserService.saveSysUser(sysUser);
 
-            /**
-             * 给用户分配权限
-             */
-            SysUserRole sysUserRole = new SysUserRole();
-            sysUserRole.setRid(8);
-            sysUserRole.setUid(sysUser.getId());
-            sysUserRole.setCreateTime(new Date());
-            sysUserRoleService.saveSysUserRole(sysUserRole);
+                /**
+                 * 给用户分配权限
+                 */
+                SysUserRole sysUserRole = new SysUserRole();
+                sysUserRole.setRid(8);
+                sysUserRole.setUid(sysUser.getId());
+                sysUserRole.setCreateTime(new Date());
+                sysUserRoleService.saveSysUserRole(sysUserRole);
+            } else {
+                //如果展商存在，先更新SysUser表登录账户，再更新展商表数据。
+                SysUser sysUser = sysUserService.findSysUserByUserName(company.getName());
+                sysUser.setUserName(cfpaCompany.getZwgsmc());
+                sysUser.setRealName(cfpaCompany.getZwgsmc());
+                sysUserService.updateSysUser(sysUser);
+
+                company.setName(cfpaCompany.getZwgsmc());
+                company.setShortName(cfpaCompany.getZwgsmc());
+                company.setLogo("/" + cfpaCompany.getSrc());
+                company.setContent(cfpaCompany.getQyjj());
+                company.setPlace(cfpaCompany.getZwh());
+                company.setPlaceSvg(cfpaCompany.getZwh());
+                companyService.updateByUserNum(company);
+                companyId = company.getId();
+            }
 
             //统一信用代码（唯一标识）
             String tyshxydm = cfpaCompany.getTyshxydm();
