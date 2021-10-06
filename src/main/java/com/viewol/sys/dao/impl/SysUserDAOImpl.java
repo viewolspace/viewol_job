@@ -66,4 +66,9 @@ public class SysUserDAOImpl extends ViewolMsDAO<SysUser> implements SysUserDAO {
 		map.put("realName", realName);
 		return this.pagedQuery("querySysUserByPage", map, pageIndex, pageSize);
 	}
+
+	@Override
+	public SysUser findSysUserByCompanyId(int companyId) {
+		return this.findUniqueBy("findSysUserByCompanyId", companyId);
+	}
 }

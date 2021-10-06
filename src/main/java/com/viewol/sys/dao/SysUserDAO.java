@@ -25,4 +25,7 @@ public interface SysUserDAO {
 	int updatePwd(String userName, String oldPwd, String newPwd);
 
 	public PageHolder<SysUser> querySysUserByPage(int userId, String realName, int pageIndex, int pageSize);
+
+	public SysUser findSysUserByCompanyId(int companyId);
+
 }

@@ -38,4 +38,9 @@ public class SysUserServiceImpl implements SysUserService {
         return sysUser;
     }
 
+    @Override
+    public SysUser findSysUserByCompanyId(int companyId) {
+        SysUser sysUser = sysUserDAO.findSysUserByCompanyId(companyId);
+        return sysUser;
+    }
 }

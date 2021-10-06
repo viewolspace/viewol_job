@@ -14,4 +14,7 @@ public interface SysUserService {
 	public int deleteSysUser(int id);
 
 	public SysUser findSysUserByUserName(String username);
+
+	public SysUser findSysUserByCompanyId(int companyId);
+
 }

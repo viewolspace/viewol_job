@@ -69,10 +69,4 @@
           and a.user_name = #{userName}
     </select>
 
-    <!-- 根据展商ID查询-->
-    <select id="findSysUserByCompanyId" parameterType="String" resultMap="SysUserResultMap">
-        select a.id,a.user_name,a.real_name,a.email,a.pswd,a.phone,a.create_time,a.last_login_time,a.user_status,a.company_id,c.id as roleId, c.name as roleName, c.code as roleCode
-        from sys_user a, sys_user_role b, sys_role c
-        where  a.id=b.uid and b.rid=c.id and a.company_id=#{companyId}
-    </select>
 </mapper>
